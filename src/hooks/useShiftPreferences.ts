@@ -45,23 +45,29 @@ export function useShiftPreferences() {
           if (payload.eventType === 'DELETE') {
             const old = payload.old as ShiftPreferenceRow;
             if (old.teacher_id && old.date_key && old.slot_id) {
-              setSchedule((prev) => ({
-                ...prev,
-                [old.teacher_id]: {
-                  ...prev[old.teacher_id],
-                  [`${old.date_key}_${old.slot_id}`]: null,
-                },
-              }));
+              setSchedule((prev) => {
+                const teacherSchedule = prev[old.teacher_id];
+                if (!teacherSchedule) return prev;
+                const cellKey = `${old.date_key}_${old.slot_id}`;
+                if (!(cellKey in teacherSchedule)) return prev;
+                return {
+                  ...prev,
+                  [old.teacher_id]: { ...teacherSchedule, [cellKey]: null },
+                };
+              });
             }
           } else {
             const row = payload.new as ShiftPreferenceRow;
-            setSchedule((prev) => ({
-              ...prev,
-              [row.teacher_id]: {
-                ...prev[row.teacher_id],
-                [`${row.date_key}_${row.slot_id}`]: row.status,
-              },
-            }));
+            setSchedule((prev) => {
+              const teacherSchedule = prev[row.teacher_id];
+              if (!teacherSchedule) return prev;
+              const cellKey = `${row.date_key}_${row.slot_id}`;
+              if (!(cellKey in teacherSchedule)) return prev;
+              return {
+                ...prev,
+                [row.teacher_id]: { ...teacherSchedule, [cellKey]: row.status },
+              };
+            });
           }
         },
       )
@@ -80,7 +86,6 @@ export function useShiftPreferences() {
       status: StatusKey | null,
     ): Promise<string | null> => {
       const cellKey = `${dateKey}_${slotId}`;
-      const previousValue = schedule[teacherId]?.[cellKey] ?? null;
 
       // Optimistic update
       setSchedule((prev) => ({
@@ -107,16 +112,12 @@ export function useShiftPreferences() {
           if (upsertError) throw upsertError;
         }
       } catch {
-        // Revert on failure
-        setSchedule((prev) => ({
-          ...prev,
-          [teacherId]: { ...prev[teacherId], [cellKey]: previousValue },
-        }));
+        await fetchAll();
         return '保存に失敗しました。ネットワークを確認してください。';
       }
       return null;
     },
-    [schedule],
+    [fetchAll],
   );
 
   const fillAllPreferences = useCallback(

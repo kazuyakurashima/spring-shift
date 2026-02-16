@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { TeacherId, StatusKey, SlotId } from '../types';
 import { TEACHERS, SLOTS, DATES, STATUS_MAP, TOTAL_SLOTS } from '../data/constants';
 import { useShiftPreferences } from '../hooks/useShiftPreferences';
@@ -14,12 +14,10 @@ interface ShiftSchedulerProps {
 
 export function ShiftScheduler({ defaultTeacherId, onLogout }: ShiftSchedulerProps) {
   const { schedule, loading, error, updatePreference, fillAllPreferences, getStats, refetch } = useShiftPreferences();
-  const [activeTeacher, setActiveTeacher] = useState<TeacherId>(defaultTeacherId);
   const [view, setView] = useState<'input' | 'summary'>('input');
   const [toastState, setToastState] = useState({ visible: false, message: '' });
   const [exportModal, setExportModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const teacherBarRef = useRef<HTMLDivElement>(null);
 
   const showToast = (msg: string) => {
     setToastState({ visible: true, message: msg });
@@ -49,18 +47,6 @@ export function ShiftScheduler({ defaultTeacherId, onLogout }: ShiftSchedulerPro
     [fillAllPreferences],
   );
 
-  const switchTeacher = (id: TeacherId) => {
-    setActiveTeacher(id);
-    if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (teacherBarRef.current) {
-      const el = teacherBarRef.current.querySelector(`[data-teacher="${activeTeacher}"]`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
-  }, [activeTeacher]);
-
   const buildExportText = () => {
     let text = '【春期講習 シフト希望一覧】\n期間：2026年3月25日〜4月4日\n\n';
     TEACHERS.forEach((t) => {
@@ -79,8 +65,8 @@ export function ShiftScheduler({ defaultTeacherId, onLogout }: ShiftSchedulerPro
     return text;
   };
 
-  const teacher = TEACHERS.find((t) => t.id === activeTeacher)!;
-  const stats = getStats(activeTeacher);
+  const teacher = TEACHERS.find((t) => t.id === defaultTeacherId)!;
+  const stats = getStats(defaultTeacherId);
 
   if (loading) {
     return (
@@ -131,7 +117,7 @@ export function ShiftScheduler({ defaultTeacherId, onLogout }: ShiftSchedulerPro
         display: 'flex',
         flexDirection: 'column',
         color: 'var(--text)',
-        paddingBottom: view === 'input' ? 'calc(80px + var(--safe-bottom))' : '20px',
+        paddingBottom: '20px',
         position: 'relative',
       }}
     >
@@ -222,87 +208,6 @@ export function ShiftScheduler({ defaultTeacherId, onLogout }: ShiftSchedulerPro
           <SummaryView schedule={schedule} getStats={getStats} onExport={() => setExportModal(true)} />
         )}
       </div>
-
-      {/* Bottom Nav */}
-      {view === 'input' && (
-        <div
-          ref={teacherBarRef}
-          style={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'white',
-            borderTop: '1px solid #ECEAE5',
-            display: 'flex',
-            justifyContent: 'center',
-            padding: '8px 12px calc(8px + var(--safe-bottom))',
-            gap: 4,
-            boxShadow: '0 -4px 20px rgba(0,0,0,0.06)',
-            zIndex: 50,
-            maxWidth: 480,
-            margin: '0 auto',
-          }}
-        >
-          {TEACHERS.map((t) => {
-            const active = activeTeacher === t.id;
-            const s = getStats(t.id);
-            const done = s.filled === TOTAL_SLOTS;
-            return (
-              <button
-                key={t.id}
-                data-teacher={t.id}
-                className="teacher-tab"
-                onClick={() => switchTeacher(t.id)}
-                style={{
-                  flex: '0 0 auto',
-                  minWidth: 64,
-                  padding: '6px 10px 4px',
-                  border: active ? '2px solid var(--navy)' : '2px solid transparent',
-                  borderRadius: 14,
-                  background: active ? 'var(--navy)' : 'transparent',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  position: 'relative',
-                  WebkitAppearance: 'none',
-                }}
-              >
-                <span style={{ fontSize: 20 }}>{t.avatar}</span>
-                <span style={{ fontSize: 11, fontWeight: active ? 800 : 600, color: active ? 'white' : 'var(--text-muted)' }}>
-                  {t.short}
-                </span>
-                {s.filled > 0 && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: -4,
-                      right: -4,
-                      width: 18,
-                      height: 18,
-                      borderRadius: 100,
-                      background: done ? '#10B981' : 'var(--accent)',
-                      color: 'white',
-                      fontSize: 9,
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                      border: '2px solid white',
-                    }}
-                  >
-                    {done ? '✓' : s.filled}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
