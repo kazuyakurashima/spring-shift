@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --navy: #0F2B4C;
+  --navy-light: #1A3D66;
+  --cream: #FBF8F3;
+  --warm-gray: #F5F1EC;
+  --text: #1A1A1A;
+  --text-muted: #8B8680;
+  --accent: #E8734A;
+  --radius: 16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body {
+  margin: 0;
+  background: var(--cream);
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes toastIn {
+  from { transform: translate(-50%, -20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.status-btn {
+  transition: all .15s cubic-bezier(.4, 0, .2, 1);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.status-btn:active {
+  transform: scale(.93);
+}
+
+.teacher-tab {
+  transition: all .2s cubic-bezier(.4, 0, .2, 1);
+}
+
+.teacher-tab:active {
+  transform: scale(.95);
+}
+
+.date-card {
+  animation: slideUp .3s ease both;
+}
+
+.progress-fill {
+  transition: width .5s cubic-bezier(.4, 0, .2, 1);
+}
+
+.view-toggle {
+  transition: all .2s ease;
+}
+
+.view-toggle:active {
+  transform: scale(.96);
+}
+
+.toast {
+  animation: toastIn .3s ease;
+}
+
+.action-btn {
+  transition: all .15s ease;
+}
+
+.action-btn:active {
+  transform: scale(.95);
+}
+
+.modal-content {
+  animation: modalIn .25s ease;
+}
